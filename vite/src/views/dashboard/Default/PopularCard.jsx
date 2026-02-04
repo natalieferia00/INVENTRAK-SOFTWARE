@@ -26,7 +26,9 @@ import MoreHorizOutlinedIcon from '@mui/icons-material/MoreHorizOutlined';
 import KeyboardArrowUpOutlinedIcon from '@mui/icons-material/KeyboardArrowUpOutlined';
 import KeyboardArrowDownOutlinedIcon from '@mui/icons-material/KeyboardArrowDownOutlined';
 
-export default function PopularCard({ isLoading }) {
+// ==============================|| DASHBOARD DEFAULT - POPULAR CARD ||============================== //
+
+export default function PopularCard({ isLoading, productos = [] }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
 
   const handleClick = (event) => {
@@ -46,7 +48,7 @@ export default function PopularCard({ isLoading }) {
           <CardContent>
             <Stack sx={{ gap: gridSpacing }}>
               <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography variant="h4">Popular Stocks</Typography>
+                <Typography variant="h4">Productos Populares</Typography>
                 <IconButton size="small" sx={{ mt: -0.625 }}>
                   <MoreHorizOutlinedIcon
                     fontSize="small"
@@ -67,153 +69,63 @@ export default function PopularCard({ isLoading }) {
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
               >
-                <MenuItem onClick={handleClose}> Today</MenuItem>
-                <MenuItem onClick={handleClose}> This Month</MenuItem>
-                <MenuItem onClick={handleClose}> This Year </MenuItem>
+                <MenuItem onClick={handleClose}> Hoy</MenuItem>
+                <MenuItem onClick={handleClose}> Este Mes</MenuItem>
+                <MenuItem onClick={handleClose}> Este Año </MenuItem>
               </Menu>
 
-              <BajajAreaChartCard />
+              {/* CLAVE: Pasamos los productos al componente del gráfico morado */}
+              <BajajAreaChartCard isLoading={isLoading} productos={productos} />
+
+              {/* Mapeamos tus productos reales de MongoDB */}
               <Box>
-                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                    Bajaj Finery
+                {productos.length > 0 ? (
+                  productos.map((producto, index) => (
+                    <React.Fragment key={producto._id || index}>
+                      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
+                          {producto.nombre}
+                        </Typography>
+                        <Stack direction="row" sx={{ alignItems: 'center' }}>
+                          <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
+                            ${Number(producto.precio).toLocaleString('es-CO')}
+                          </Typography>
+                          <Avatar
+                            variant="rounded"
+                            sx={{
+                              width: 16,
+                              height: 16,
+                              borderRadius: '5px',
+                              bgcolor: producto.stock > 10 ? 'success.light' : 'orange.light',
+                              color: producto.stock > 10 ? 'success.dark' : 'orange.dark',
+                              ml: 2
+                            }}
+                          >
+                            {producto.stock > 10 ? (
+                              <KeyboardArrowUpOutlinedIcon fontSize="small" color="inherit" />
+                            ) : (
+                              <KeyboardArrowDownOutlinedIcon fontSize="small" color="inherit" />
+                            )}
+                          </Avatar>
+                        </Stack>
+                      </Stack>
+                      <Typography variant="subtitle2" sx={{ color: producto.stock > 10 ? 'success.dark' : 'orange.dark' }}>
+                        {producto.stock} Unidades en Stock
+                      </Typography>
+                      {index !== productos.length - 1 && <Divider sx={{ my: 1.5 }} />}
+                    </React.Fragment>
+                  ))
+                ) : (
+                  <Typography variant="subtitle2" sx={{ textAlign: 'center', py: 2 }}>
+                    No hay productos en inventario
                   </Typography>
-                  <Stack direction="row" sx={{ alignItems: 'center' }}>
-                    <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                      $1839.00
-                    </Typography>
-                    <Avatar
-                      variant="rounded"
-                      sx={{
-                        width: 16,
-                        height: 16,
-                        borderRadius: '5px',
-                        bgcolor: 'success.light',
-                        color: 'success.dark',
-                        ml: 2
-                      }}
-                    >
-                      <KeyboardArrowUpOutlinedIcon fontSize="small" color="inherit" />
-                    </Avatar>
-                  </Stack>
-                </Stack>
-                <Typography variant="subtitle2" sx={{ color: 'success.dark' }}>
-                  10% Profit
-                </Typography>
-                <Divider sx={{ my: 1.5 }} />
-                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                    TTML
-                  </Typography>
-                  <Stack direction="row" sx={{ alignItems: 'center' }}>
-                    <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                      $100.00
-                    </Typography>
-                    <Avatar
-                      variant="rounded"
-                      sx={{
-                        width: 16,
-                        height: 16,
-                        borderRadius: '5px',
-                        bgcolor: 'orange.light',
-                        color: 'orange.dark',
-                        marginLeft: 1.875
-                      }}
-                    >
-                      <KeyboardArrowDownOutlinedIcon fontSize="small" color="inherit" />
-                    </Avatar>
-                  </Stack>
-                </Stack>
-                <Typography variant="subtitle2" sx={{ color: 'orange.dark' }}>
-                  10% loss
-                </Typography>
-                <Divider sx={{ my: 1.5 }} />
-                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                    Reliance
-                  </Typography>
-                  <Stack direction="row" sx={{ alignItems: 'center' }}>
-                    <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                      $200.00
-                    </Typography>
-                    <Avatar
-                      variant="rounded"
-                      sx={{
-                        width: 16,
-                        height: 16,
-                        borderRadius: '5px',
-                        bgcolor: 'success.light',
-                        color: 'success.dark',
-                        ml: 2
-                      }}
-                    >
-                      <KeyboardArrowUpOutlinedIcon fontSize="small" color="inherit" />
-                    </Avatar>
-                  </Stack>
-                </Stack>
-                <Typography variant="subtitle2" sx={{ color: 'success.dark' }}>
-                  10% Profit
-                </Typography>
-                <Divider sx={{ my: 1.5 }} />
-                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                    TTML
-                  </Typography>
-                  <Stack direction="row" sx={{ alignItems: 'center' }}>
-                    <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                      $189.00
-                    </Typography>
-                    <Avatar
-                      variant="rounded"
-                      sx={{
-                        width: 16,
-                        height: 16,
-                        borderRadius: '5px',
-                        bgcolor: 'orange.light',
-                        color: 'orange.dark',
-                        ml: 2
-                      }}
-                    >
-                      <KeyboardArrowDownOutlinedIcon fontSize="small" color="inherit" />
-                    </Avatar>
-                  </Stack>
-                </Stack>
-                <Typography variant="subtitle2" sx={{ color: 'orange.dark' }}>
-                  10% loss
-                </Typography>
-                <Divider sx={{ my: 1.5 }} />
-                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                    Stolon
-                  </Typography>
-                  <Stack direction="row" sx={{ alignItems: 'center' }}>
-                    <Typography variant="subtitle1" sx={{ color: 'inherit' }}>
-                      $189.00
-                    </Typography>
-                    <Avatar
-                      variant="rounded"
-                      sx={{
-                        width: 16,
-                        height: 16,
-                        borderRadius: '5px',
-                        bgcolor: 'orange.light',
-                        color: 'orange.dark',
-                        ml: 2
-                      }}
-                    >
-                      <KeyboardArrowDownOutlinedIcon fontSize="small" color="inherit" />
-                    </Avatar>
-                  </Stack>
-                </Stack>
-                <Typography variant="subtitle2" sx={{ color: 'orange.dark' }}>
-                  10% loss
-                </Typography>
+                )}
               </Box>
             </Stack>
           </CardContent>
           <CardActions sx={{ p: 1.25, pt: 0, justifyContent: 'center' }}>
             <Button size="small" disableElevation>
-              View All
+              Ver Todo
               <ChevronRightOutlinedIcon />
             </Button>
           </CardActions>
@@ -223,4 +135,7 @@ export default function PopularCard({ isLoading }) {
   );
 }
 
-PopularCard.propTypes = { isLoading: PropTypes.bool };
+PopularCard.propTypes = { 
+  isLoading: PropTypes.bool,
+  productos: PropTypes.array 
+};

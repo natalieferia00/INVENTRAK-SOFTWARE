@@ -15,56 +15,67 @@ import useConfig from 'hooks/useConfig';
 
 // ===========================|| DASHBOARD DEFAULT - BAJAJ AREA CHART CARD ||=========================== //
 
-export default function BajajAreaChartCard() {
+// Agregamos { productos } para recibir los datos de MongoDB
+export default function BajajAreaChartCard({ productos = [], isLoading }) {
   const theme = useTheme();
-  const {
-    state: { fontFamily }
-  } = useConfig();
-
-  const secondary800 = theme.vars.palette.secondary[800];
+  const { state: { fontFamily } } = useConfig();
+  const secondary800 = theme.palette.secondary[800];
 
   const [chartOptions, setChartOptions] = useState(bajajChartOptions);
-  const [series] = useState([{ data: [0, 15, 10, 50, 30, 40, 25] }]);
+  const [series, setSeries] = useState([{ data: [] }]);
+  
+  // LOGICA DE SINCRONIZACIÓN: Calculamos stock en base a los 2 productos que ya tienes
+  const stockTotal = productos.reduce((sum, p) => sum + Number(p.stock), 0);
+  const totalRegistrados = productos.length;
 
   useEffect(() => {
+    // Mapeamos los nombres y cantidades para la gráfica
+    const nombres = productos.map((p) => p.nombre);
+    const valores = productos.map((p) => Number(p.stock));
+
+    setSeries([{ 
+      name: 'Existencias',
+      data: valores.length > 0 ? valores : [0, 0, 0, 0] 
+    }]);
+
     setChartOptions({
       ...bajajChartOptions,
-      chart: { ...bajajChartOptions.chart, fontFamily: fontFamily },
-      colors: [secondary800],
-      fill: {
-        gradient: {
-          colorStops: [
-            [
-              { offset: 0, color: secondary800, opacity: 0.4 },
-              { offset: 100, color: secondary800, opacity: 0.1 }
-            ]
-          ]
-        }
+      chart: { 
+        ...bajajChartOptions.chart, 
+        fontFamily: fontFamily 
       },
-      theme: { mode: 'light' }
+      colors: [secondary800],
+      labels: nombres.length > 0 ? nombres : ['Sin datos'],
+      tooltip: {
+        fixed: { enabled: false },
+        x: { show: true },
+        y: { title: { formatter: () => 'Stock: ' } }
+      }
     });
-  }, [fontFamily, secondary800]);
+  }, [fontFamily, secondary800, productos]);
 
   return (
     <Card sx={{ bgcolor: 'secondary.light', mt: -1 }}>
       <Grid container sx={{ p: 2, pb: 0, color: '#fff' }}>
-        <Grid size={12}>
+        <Grid item xs={12}>
           <Grid container sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-            <Grid>
+            <Grid item>
               <Typography variant="subtitle1" sx={{ color: 'secondary.dark' }}>
-                Bajaj Finery
+                Resumen de Existencias
               </Typography>
             </Grid>
-            <Grid>
+            <Grid item>
               <Typography variant="h4" sx={{ color: 'grey.800' }}>
-                $1839.00
+                {/* Mostramos el stock real sincronizado */}
+                {isLoading ? '...' : `${stockTotal} Unds.`}
               </Typography>
             </Grid>
           </Grid>
         </Grid>
-        <Grid size={12}>
+        <Grid item xs={12}>
           <Typography variant="subtitle2" sx={{ color: 'grey.800' }}>
-            10% Profit
+            {/* Mostramos el conteo real de productos */}
+            {totalRegistrados} productos registrados en sistema
           </Typography>
         </Grid>
       </Grid>

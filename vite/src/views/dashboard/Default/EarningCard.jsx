@@ -24,7 +24,9 @@ import FileCopyTwoToneIcon from '@mui/icons-material/FileCopyOutlined';
 import PictureAsPdfTwoToneIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import ArchiveTwoToneIcon from '@mui/icons-material/ArchiveOutlined';
 
-export default function EarningCard({ isLoading }) {
+// ===========================|| DASHBOARD DEFAULT - EARNING CARD ||=========================== //
+
+export default function EarningCard({ isLoading, total }) {
   const theme = useTheme();
 
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -55,7 +57,7 @@ export default function EarningCard({ isLoading }) {
               position: 'absolute',
               width: 210,
               height: 210,
-              background: theme.vars.palette.secondary[800],
+              background: theme.palette.secondary[800],
               borderRadius: '50%',
               top: { xs: -85 },
               right: { xs: -95 }
@@ -65,7 +67,7 @@ export default function EarningCard({ isLoading }) {
               position: 'absolute',
               width: 210,
               height: 210,
-              background: theme.vars.palette.secondary[800],
+              background: theme.palette.secondary[800],
               borderRadius: '50%',
               top: { xs: -125 },
               right: { xs: -15 },
@@ -102,6 +104,7 @@ export default function EarningCard({ isLoading }) {
                 <MoreHorizIcon fontSize="inherit" />
               </Avatar>
             </Stack>
+            
             <Menu
               id="menu-earning-card"
               anchorEl={anchorEl}
@@ -131,12 +134,17 @@ export default function EarningCard({ isLoading }) {
                 <ArchiveTwoToneIcon sx={{ mr: 1.75 }} /> Archive File
               </MenuItem>
             </Menu>
+
             <Stack direction="row" sx={{ alignItems: 'center' }}>
-              <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>$500.00</Typography>
+              <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>
+                {/* SINCRONIZACIÓN: Mostramos el total de dinero de tu inventario */}
+                ${total ? total.toLocaleString('es-CO') : '0.00'}
+              </Typography>
               <Avatar sx={{ ...theme.typography.smallAvatar, bgcolor: 'secondary.200', color: 'secondary.dark' }}>
                 <ArrowUpwardIcon fontSize="inherit" sx={{ transform: 'rotate3d(1, 1, 1, 45deg)' }} />
               </Avatar>
             </Stack>
+
             <Typography
               sx={{
                 mb: 1.25,
@@ -145,7 +153,7 @@ export default function EarningCard({ isLoading }) {
                 color: 'secondary.200'
               }}
             >
-              Total Earning
+              Valor Total de Inventario
             </Typography>
           </Box>
         </MainCard>
@@ -154,4 +162,7 @@ export default function EarningCard({ isLoading }) {
   );
 }
 
-EarningCard.propTypes = { isLoading: PropTypes.bool };
+EarningCard.propTypes = { 
+  isLoading: PropTypes.bool,
+  total: PropTypes.number // Agregamos la validación del total
+};

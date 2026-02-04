@@ -22,19 +22,13 @@ import { gridSpacing } from 'store/constant';
 import barChartOptions from './chart-data/total-growth-bar-chart';
 
 const status = [
-  { value: 'today', label: 'Today' },
-  { value: 'month', label: 'This Month' },
-  { value: 'year', label: 'This Year' }
+  { value: 'today', label: 'Hoy' },
+  { value: 'month', label: 'Este Mes' },
+  { value: 'year', label: 'Este Año' }
 ];
 
-const series = [
-  { name: 'Investment', data: [35, 125, 35, 35, 35, 80, 35, 20, 35, 45, 15, 75] },
-  { name: 'Loss', data: [35, 15, 15, 35, 65, 40, 80, 25, 15, 85, 25, 75] },
-  { name: 'Profit', data: [35, 145, 35, 35, 20, 105, 100, 10, 65, 45, 30, 10] },
-  { name: 'Maintenance', data: [0, 0, 75, 0, 0, 115, 0, 0, 0, 0, 150, 0] }
-];
-
-export default function TotalGrowthBarChart({ isLoading }) {
+// Recibimos 'productos' como prop
+export default function TotalGrowthBarChart({ isLoading, productos = [] }) {
   const theme = useTheme();
   const {
     state: { fontFamily }
@@ -42,6 +36,18 @@ export default function TotalGrowthBarChart({ isLoading }) {
 
   const [value, setValue] = useState('today');
   const [chartOptions, setChartOptions] = useState(barChartOptions);
+  
+  // Procesamos los datos de MongoDB para la gráfica
+  // Mostraremos una serie con el Stock por Producto
+  const series = [
+    {
+      name: 'Stock Disponible',
+      data: productos.map((p) => Number(p.stock))
+    }
+  ];
+
+  // Calculamos el valor total para el título
+  const valorTotal = productos.reduce((sum, p) => sum + (Number(p.precio) * Number(p.stock)), 0);
 
   const textPrimary = theme.vars.palette.text.primary;
   const divider = theme.vars.palette.divider;
@@ -56,14 +62,18 @@ export default function TotalGrowthBarChart({ isLoading }) {
     setChartOptions({
       ...barChartOptions,
       chart: { ...barChartOptions.chart, fontFamily: fontFamily },
-      colors: [primary200, primaryDark, secondaryMain, secondaryLight],
-      xaxis: { ...barChartOptions.xaxis, labels: { style: { colors: textPrimary } } },
+      colors: [primaryDark, secondaryMain], // Colores de tu marca
+      xaxis: { 
+        ...barChartOptions.xaxis, 
+        categories: productos.map((p) => p.nombre), // Nombres de tus productos en el eje X
+        labels: { style: { colors: textPrimary } } 
+      },
       yaxis: { ...barChartOptions.yaxis, labels: { style: { colors: textPrimary } } },
       grid: { borderColor: divider },
       tooltip: { theme: 'light' },
       legend: { ...(barChartOptions.legend ?? {}), labels: { ...(barChartOptions.legend?.labels ?? {}), colors: grey500 } }
     });
-  }, [fontFamily, primary200, primaryDark, secondaryMain, secondaryLight, textPrimary, grey500, divider]);
+  }, [fontFamily, primary200, primaryDark, secondaryMain, secondaryLight, textPrimary, grey500, divider, productos]);
 
   return (
     <>
@@ -74,8 +84,10 @@ export default function TotalGrowthBarChart({ isLoading }) {
           <Stack sx={{ gap: gridSpacing }}>
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
               <Stack sx={{ gap: 1 }}>
-                <Typography variant="subtitle2">Total Growth</Typography>
-                <Typography variant="h3">$2,324.00</Typography>
+                <Typography variant="subtitle2">Crecimiento de Inventario</Typography>
+                <Typography variant="h3">
+                  ${valorTotal.toLocaleString('es-CO')}
+                </Typography>
               </Stack>
               <TextField id="standard-select-currency" select value={value} onChange={(e) => setValue(e.target.value)}>
                 {status.map((option) => (
@@ -104,4 +116,7 @@ export default function TotalGrowthBarChart({ isLoading }) {
   );
 }
 
-TotalGrowthBarChart.propTypes = { isLoading: PropTypes.bool };
+TotalGrowthBarChart.propTypes = { 
+    isLoading: PropTypes.bool,
+    productos: PropTypes.array 
+};

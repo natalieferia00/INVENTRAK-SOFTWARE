@@ -22,14 +22,18 @@ import SkeletonTotalOrderCard from 'ui-component/cards/Skeleton/EarningCard';
 import LocalMallOutlinedIcon from '@mui/icons-material/LocalMallOutlined';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
-// data
-const monthlyData = [{ data: [45, 66, 41, 89, 25, 44, 9, 54] }];
-const yearlyData = [{ data: [35, 44, 9, 54, 45, 66, 41, 69] }];
+// ==============================|| DASHBOARD DEFAULT - TOTAL ORDER CARD ||============================== //
 
-export default function TotalOrderLineChartCard({ isLoading }) {
+// Agregamos 'count' a las props para recibir productos.length
+export default function TotalOrderLineChartCard({ isLoading, count }) {
   const theme = useTheme();
 
   const [timeValue, setTimeValue] = React.useState(false);
+
+  // Datos de ejemplo para la gráfica (podrías dinamizarlos luego si guardas histórico)
+  const monthlyData = [{ data: [10, 20, 15, 30, 25, 40, count || 0] }];
+  const yearlyData = [{ data: [5, 15, 10, 25, 20, 35, count || 0] }];
+  
   const [series, setSeries] = useState(yearlyData);
 
   const handleChangeTime = (_event, newValue) => {
@@ -63,7 +67,7 @@ export default function TotalOrderLineChartCard({ isLoading }) {
               position: 'absolute',
               width: 210,
               height: 210,
-              background: theme.vars.palette.primary[800],
+              background: theme.palette.primary[800],
               borderRadius: '50%',
               top: { xs: -85 },
               right: { xs: -95 }
@@ -73,7 +77,7 @@ export default function TotalOrderLineChartCard({ isLoading }) {
               position: 'absolute',
               width: 210,
               height: 210,
-              background: theme.vars.palette.primary[800],
+              background: theme.palette.primary[800],
               borderRadius: '50%',
               top: { xs: -125 },
               right: { xs: -15 },
@@ -103,7 +107,7 @@ export default function TotalOrderLineChartCard({ isLoading }) {
                   sx={{ color: 'inherit' }}
                   onClick={(e) => handleChangeTime(e, true)}
                 >
-                  Month
+                  Mes
                 </Button>
                 <Button
                   disableElevation
@@ -112,7 +116,7 @@ export default function TotalOrderLineChartCard({ isLoading }) {
                   sx={{ color: 'inherit' }}
                   onClick={(e) => handleChangeTime(e, false)}
                 >
-                  Year
+                  Año
                 </Button>
               </Box>
             </Stack>
@@ -123,7 +127,8 @@ export default function TotalOrderLineChartCard({ isLoading }) {
                   <Box>
                     <Stack direction="row" sx={{ alignItems: 'center' }}>
                       <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>
-                        {timeValue ? '$108' : '$961'}
+                        {/* SINCRONIZACIÓN: Mostramos la cantidad real de productos */}
+                        {isLoading ? '...' : (count || 0)}
                       </Typography>
                       <Avatar sx={{ ...theme.typography.smallAvatar, bgcolor: 'primary.200', color: 'primary.dark' }}>
                         <ArrowDownwardIcon fontSize="inherit" sx={{ transform: 'rotate3d(1, 1, 1, 45deg)' }} />
@@ -136,7 +141,7 @@ export default function TotalOrderLineChartCard({ isLoading }) {
                         color: 'primary.200'
                       }}
                     >
-                      Total Order
+                      Productos en Sistema
                     </Typography>
                   </Box>
                 </Grid>
@@ -160,4 +165,7 @@ export default function TotalOrderLineChartCard({ isLoading }) {
   );
 }
 
-TotalOrderLineChartCard.propTypes = { isLoading: PropTypes.bool };
+TotalOrderLineChartCard.propTypes = { 
+    isLoading: PropTypes.bool,
+    count: PropTypes.number // Validamos la nueva prop
+};
