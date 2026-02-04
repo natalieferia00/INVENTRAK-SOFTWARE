@@ -5,7 +5,7 @@ import Grid from '@mui/material/Grid';
 
 // project imports
 import EarningCard from './EarningCard';
-import PopularCard from './PopularCard'; // Este componente suele contener a Bajaj o las métricas laterales
+import PopularCard from './PopularCard'; 
 import TotalOrderLineChartCard from './TotalOrderLineChartCard';
 import TotalIncomeDarkCard from '../../../ui-component/cards/TotalIncomeDarkCard';
 import TotalIncomeLightCard from '../../../ui-component/cards/TotalIncomeLightCard';
@@ -22,13 +22,18 @@ export default function Dashboard() {
   const [isLoading, setLoading] = useState(true);
   const [productos, setProductos] = useState([]);
 
+  // ✅ CAMBIO CLAVE: Se actualizó la URL de localhost a tu URL real de Render
   const cargarInventario = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/productos');
+      // Usamos la URL que ya confirmamos que devuelve []
+      const res = await fetch('https://backend-inventrak.onrender.com/api/productos');
+      
+      if (!res.ok) throw new Error("Error en la respuesta del servidor");
+      
       const data = await res.json();
       setProductos(data);
     } catch (error) {
-      console.error("Error al sincronizar widgets:", error);
+      console.error("Error al sincronizar widgets con Render:", error);
     } finally {
       setLoading(false);
     }
@@ -38,16 +43,16 @@ export default function Dashboard() {
     cargarInventario();
   }, []);
 
-  // Cálculos dinámicos exactos de tu MongoDB
-  const stockFisicoTotal = productos.reduce((sum, p) => sum + Number(p.stock), 0);
-  const valorMonetarioTotal = productos.reduce((sum, p) => sum + (Number(p.precio) * Number(p.stock)), 0);
+  // Cálculos dinámicos exactos de tu MongoDB Atlas
+  const stockFisicoTotal = productos.reduce((sum, p) => sum + Number(p.stock || 0), 0);
+  const valorMonetarioTotal = productos.reduce((sum, p) => sum + (Number(p.precio || 0) * Number(p.stock || 0)), 0);
 
   return (
     <Grid container spacing={gridSpacing}>
+      {/* ... resto del JSX se mantiene igual ... */}
       <Grid size={12}>
         <Grid container spacing={gridSpacing}>
           <Grid size={{ lg: 4, md: 6, sm: 6, xs: 12 }}>
-            {/* Si EarningCard no cambia, es que ignora la prop 'total' */}
             <EarningCard isLoading={isLoading} total={valorMonetarioTotal} />
           </Grid>
           <Grid size={{ lg: 4, md: 6, sm: 6, xs: 12 }}>
@@ -60,12 +65,10 @@ export default function Dashboard() {
               </Grid>
               <Grid size={{ sm: 6, xs: 12, md: 6, lg: 12 }}>
                 <TotalIncomeLightCard
-                  {...{
-                    isLoading: isLoading,
-                    total: productos.length,
-                    label: 'Productos Registrados',
-                    icon: <StorefrontTwoToneIcon fontSize="inherit" />
-                  }}
+                  isLoading={isLoading}
+                  total={productos.length}
+                  label="Productos Registrados"
+                  icon={<StorefrontTwoToneIcon fontSize="inherit" />}
                 />
               </Grid>
             </Grid>
@@ -78,7 +81,6 @@ export default function Dashboard() {
             <TotalGrowthBarChart isLoading={isLoading} productos={productos} />
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
-            {/* IMPORTANTE: PopularCard es el que maneja la sección donde viste el "0" */}
             <PopularCard isLoading={isLoading} productos={productos} />
           </Grid>
         </Grid>
