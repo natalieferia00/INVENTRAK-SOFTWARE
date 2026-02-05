@@ -12,7 +12,7 @@ import {
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
 
-// assets - Usando iconos de Tabler para coherencia con Berry
+// assets
 import { 
   IconTrash, 
   IconPencil, 
@@ -29,55 +29,59 @@ export default function InventarioPage() {
   const [form, setForm] = useState({ nombre: '', categoria: '', stock: '', precio: '' });
   const [editandoId, setEditandoId] = useState(null);
 
-  const API_URL = 'http://localhost:5000/api/productos';
+  // CLAVE PARA LOCALSTORAGE
+  const LS_KEY = 'inventrak_productos';
 
-  const cargarProductos = async () => {
+  // 1. CARGAR (READ)
+  const cargarProductos = () => {
     setLoading(true);
-    try {
-      const res = await fetch(API_URL);
-      const data = await res.json();
-      setProductos(data);
-    } catch (error) {
-      console.error("Error al conectar con el servidor:", error);
-    } finally {
+    setTimeout(() => { // Simula un pequeño delay para que el skeleton/spinner se vea bien
+      const stored = localStorage.getItem(LS_KEY);
+      if (stored) {
+        setProductos(JSON.parse(stored));
+      }
       setLoading(false);
-    }
+    }, 500);
   };
 
   useEffect(() => {
     cargarProductos();
   }, []);
 
-  const handleGuardar = async (e) => {
+  // 2. GUARDAR (CREATE / UPDATE)
+  const handleGuardar = (e) => {
     e.preventDefault();
     if (!form.nombre || form.stock === '') return;
 
-    try {
-      const method = editandoId ? 'PUT' : 'POST';
-      const url = editandoId ? `${API_URL}/${editandoId}` : API_URL;
-
-      const res = await fetch(url, {
-        method: method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          stock: Number(form.stock),
-          precio: Number(form.precio)
-        })
-      });
-
-      if (res.ok) {
-        setForm({ nombre: '', categoria: '', stock: '', precio: '' });
-        setEditandoId(null);
-        cargarProductos();
-      }
-    } catch (error) {
-      alert("Error de conexión con el servidor");
+    let nuevosProductos;
+    
+    if (editandoId) {
+      // Editar existente
+      nuevosProductos = productos.map((p) => 
+        p.id === editandoId ? { ...form, id: editandoId, stock: Number(form.stock), precio: Number(form.precio) } : p
+      );
+    } else {
+      // Crear nuevo con ID único (timestamp)
+      const nuevoProducto = {
+        ...form,
+        id: Date.now(),
+        stock: Number(form.stock),
+        precio: Number(form.precio)
+      };
+      nuevosProductos = [nuevoProducto, ...productos];
     }
+
+    localStorage.setItem(LS_KEY, JSON.stringify(nuevosProductos));
+    setProductos(nuevosProductos);
+    
+    // Resetear formulario
+    setForm({ nombre: '', categoria: '', stock: '', precio: '' });
+    setEditandoId(null);
   };
 
+  // 3. PREPARAR EDICIÓN
   const prepararEdicion = (producto) => {
-    setEditandoId(producto._id);
+    setEditandoId(producto.id);
     setForm({
       nombre: producto.nombre,
       categoria: producto.categoria,
@@ -86,14 +90,12 @@ export default function InventarioPage() {
     });
   };
 
-  const handleEliminar = async (id) => {
+  // 4. ELIMINAR (DELETE)
+  const handleEliminar = (id) => {
     if (window.confirm('¿Deseas eliminar este producto de INVENTRAK?')) {
-      try {
-        await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-        cargarProductos();
-      } catch (error) {
-        alert("No se pudo eliminar el producto");
-      }
+      const filtrados = productos.filter(p => p.id !== id);
+      localStorage.setItem(LS_KEY, JSON.stringify(filtrados));
+      setProductos(filtrados);
     }
   };
 
@@ -105,10 +107,10 @@ export default function InventarioPage() {
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Box>
               <Typography variant="h3" color="primary.800" gutterBottom>
-                Panel de Inventario
+                Panel de Inventario (Local)
               </Typography>
               <Typography variant="subtitle2" color="grey.700">
-                
+                Gestión directa en navegador sin servidor activo.
               </Typography>
             </Box>
             <Button 
@@ -118,13 +120,13 @@ export default function InventarioPage() {
               onClick={cargarProductos}
               sx={{ boxShadow: 3 }}
             >
-              Sincronizar
+              Refrescar
             </Button>
           </Stack>
         </MainCard>
       </Grid>
 
-      {/* COLUMNA FORMULARIO (4 columnas) */}
+      {/* COLUMNA FORMULARIO */}
       <Grid item xs={12} md={4}>
         <MainCard 
           title={
@@ -140,14 +142,12 @@ export default function InventarioPage() {
                 label="Nombre del Producto" 
                 fullWidth 
                 required
-                variant="outlined"
                 value={form.nombre}
                 onChange={(e) => setForm({...form, nombre: e.target.value})}
               />
               <TextField 
                 label="Categoría" 
                 fullWidth 
-                variant="outlined"
                 value={form.categoria}
                 onChange={(e) => setForm({...form, categoria: e.target.value})}
               />
@@ -206,7 +206,7 @@ export default function InventarioPage() {
         </MainCard>
       </Grid>
 
-      {/* COLUMNA TABLA (8 columnas) */}
+      {/* COLUMNA TABLA */}
       <Grid item xs={12} md={8}>
         <MainCard 
           content={false} 
@@ -220,11 +220,11 @@ export default function InventarioPage() {
           {loading ? (
             <Stack alignItems="center" p={10}><CircularProgress /></Stack>
           ) : (
-            <TableContainer>
+            <TableContainer component={Paper} elevation={0}>
               <Table sx={{ minWidth: 600 }}>
                 <TableHead sx={{ bgcolor: 'grey.50' }}>
                   <TableRow>
-                    <TableCell sx={{ pl: 3 }}>Detalles del Producto</TableCell>
+                    <TableCell sx={{ pl: 3 }}>Detalles</TableCell>
                     <TableCell>Categoría</TableCell>
                     <TableCell align="right">Stock</TableCell>
                     <TableCell align="right">Precio Unitario</TableCell>
@@ -234,12 +234,10 @@ export default function InventarioPage() {
                 <TableBody>
                   {productos.map((row) => (
                     <TableRow 
-                      key={row._id} 
+                      key={row.id} 
                       hover 
                       sx={{ 
-                        transition: '0.3s',
-                        bgcolor: editandoId === row._id ? 'secondary.light' : 'inherit',
-                        '&:last-child td, &:last-child th': { border: 0 } 
+                        bgcolor: editandoId === row.id ? 'secondary.light' : 'inherit',
                       }}
                     >
                       <TableCell sx={{ pl: 3 }}>
@@ -248,14 +246,13 @@ export default function InventarioPage() {
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Chip label={row.categoria || 'Sin clase'} variant="outlined" size="small" />
+                        <Chip label={row.categoria || 'General'} variant="outlined" size="small" />
                       </TableCell>
                       <TableCell align="right">
                         <Chip 
                           label={row.stock} 
                           sx={{ 
                             fontWeight: 'bold',
-                            minWidth: 45,
                             bgcolor: row.stock < 5 ? 'error.light' : row.stock < 15 ? 'warning.light' : 'success.light',
                             color: row.stock < 5 ? 'error.dark' : row.stock < 15 ? 'warning.dark' : 'success.dark',
                           }} 
@@ -269,16 +266,10 @@ export default function InventarioPage() {
                       </TableCell>
                       <TableCell align="center">
                         <Stack direction="row" justifyContent="center" spacing={0.5}>
-                          <IconButton 
-                            sx={{ color: 'primary.main', '&:hover': { bgcolor: 'primary.light' } }} 
-                            onClick={() => prepararEdicion(row)}
-                          >
+                          <IconButton color="primary" onClick={() => prepararEdicion(row)}>
                             <IconPencil size="20" />
                           </IconButton>
-                          <IconButton 
-                            sx={{ color: 'error.main', '&:hover': { bgcolor: 'error.light' } }} 
-                            onClick={() => handleEliminar(row._id)}
-                          >
+                          <IconButton color="error" onClick={() => handleEliminar(row.id)}>
                             <IconTrash size="20" />
                           </IconButton>
                         </Stack>
@@ -289,7 +280,7 @@ export default function InventarioPage() {
                     <TableRow>
                       <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
                         <Typography variant="h5" color="grey.400">
-                          No hay productos registrados
+                          No hay productos en el almacenamiento local
                         </Typography>
                       </TableCell>
                     </TableRow>

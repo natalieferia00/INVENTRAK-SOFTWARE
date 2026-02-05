@@ -1,51 +1,79 @@
-// Ruta sugerida: src/views/dashboard/Default/chart-data/bajaj-area-chart.js
+import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 
-const getBajajChartData = (productos) => {
-    // Extraemos los datos de MongoDB: Stock para los puntos y Nombres para las etiquetas
-    const stocks = productos.map((p) => p.stock);
-    const nombres = productos.map((p) => p.nombre);
+// material-ui
+import { useTheme } from '@mui/material/styles';
+import { Card, Grid, Typography } from '@mui/material';
 
-    return {
-        type: 'area',
-        height: 95,
-        options: {
-            chart: {
-                id: 'support-chart',
-                sparkline: {
-                    enabled: true
-                }
-            },
-            dataLabels: {
-                enabled: false
-            },
-            stroke: {
-                curve: 'smooth',
-                width: 1
-            },
+// third-party
+import Chart from 'react-apexcharts';
+
+// Proyecto local
+import getBajajChartData from './chart-data/bajaj-area-chart';
+
+const BajajAreaChartCard = ({ isLoading, productos = [] }) => {
+    const theme = useTheme();
+    const customization = useSelector((state) => state.customization);
+    const { navType } = customization;
+
+    const orangeDark = theme.palette.secondary.main;
+
+    // 1. Inicializamos el estado con los datos base una sola vez
+    const [options, setOptions] = useState(() => getBajajChartData(productos).options);
+    const [series, setSeries] = useState([]);
+
+    // 2. EFECTO: Solo se ejecuta cuando cambian los productos o el tema
+    useEffect(() => {
+        const chartConfig = getBajajChartData(productos);
+        
+        // Actualizamos las opciones (colores y tema)
+        setOptions((prevOptions) => ({
+            ...prevOptions,
+            colors: [orangeDark],
+            labels: productos.map(p => p.nombre), // Sincronización de nombres
             tooltip: {
-                fixed: {
-                    enabled: false
-                },
-                x: {
-                    show: true // Mostramos el nombre del producto al pasar el mouse
-                },
-                y: {
-                    title: 'Stock: '
-                },
-                marker: {
-                    show: false
-                }
-            },
-            labels: nombres, // Sincronización con los nombres de la DB
-            colors: ['#5e35b1'] // Color morado característico de Berry
-        },
-        series: [
-            {
-                name: 'Existencias',
-                data: stocks.length > 0 ? stocks : [0] // Evita error si no hay productos
+                ...prevOptions.tooltip,
+                theme: navType === 'dark' ? 'dark' : 'light'
             }
-        ]
-    };
+        }));
+
+        // Actualizamos los datos (series)
+        setSeries([{
+            name: 'Existencias',
+            data: productos.map(p => Number(p.stock || 0))
+        }]);
+
+    // IMPORTANTE: El array de dependencias evita el bucle infinito
+    }, [productos, orangeDark, navType]); 
+
+    return (
+        <Card sx={{ bgcolor: 'secondary.light' }}>
+            <Grid container sx={{ p: 2, pb: 0, color: '#fff' }}>
+                <Grid item xs={12}>
+                    <Grid container alignItems="center" justifyContent="space-between">
+                        <Grid item>
+                            <Typography variant="subtitle1" sx={{ color: theme.palette.secondary.dark }}>
+                                Bajaj Stock
+                            </Typography>
+                        </Grid>
+                        <Grid item>
+                            <Typography variant="h4" sx={{ color: theme.palette.grey[800] }}>
+                                {productos.length} Items
+                            </Typography>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Grid>
+            {!isLoading && (
+                <Chart 
+                    options={options} 
+                    series={series} 
+                    type="area" 
+                    height={95} 
+                />
+            )}
+        </Card>
+    );
 };
 
-export default getBajajChartData;
+export default BajajAreaChartCard;

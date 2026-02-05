@@ -24,11 +24,8 @@ import FileCopyTwoToneIcon from '@mui/icons-material/FileCopyOutlined';
 import PictureAsPdfTwoToneIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import ArchiveTwoToneIcon from '@mui/icons-material/ArchiveOutlined';
 
-// ===========================|| DASHBOARD DEFAULT - EARNING CARD ||=========================== //
-
 export default function EarningCard({ isLoading, total }) {
   const theme = useTheme();
-
   const [anchorEl, setAnchorEl] = React.useState(null);
 
   const handleClick = (event) => {
@@ -38,6 +35,14 @@ export default function EarningCard({ isLoading, total }) {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  // --- REFUERZO DE SINCRONIZACIÓN ---
+  // Convertimos a número por si el backend envía un string y formateamos
+  const formattedTotal = new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0
+  }).format(Number(total) || 0);
 
   return (
     <>
@@ -86,7 +91,7 @@ export default function EarningCard({ isLoading, total }) {
                   mt: 1
                 }}
               >
-                <CardMedia sx={{ width: 30, height: 30 }} component="img" src={EarningIcon} alt="Notification" />
+                <CardMedia sx={{ width: 30, height: 30 }} component="img" src={EarningIcon} alt="Inventario" />
               </Avatar>
               <Avatar
                 variant="rounded"
@@ -97,8 +102,6 @@ export default function EarningCard({ isLoading, total }) {
                   color: 'secondary.200',
                   zIndex: 1
                 }}
-                aria-controls="menu-earning-card"
-                aria-haspopup="true"
                 onClick={handleClick}
               >
                 <MoreHorizIcon fontSize="inherit" />
@@ -111,34 +114,19 @@ export default function EarningCard({ isLoading, total }) {
               keepMounted
               open={Boolean(anchorEl)}
               onClose={handleClose}
-              variant="selectedMenu"
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'right'
-              }}
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right'
-              }}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
-              <MenuItem onClick={handleClose}>
-                <GetAppTwoToneIcon sx={{ mr: 1.75 }} /> Import Card
-              </MenuItem>
-              <MenuItem onClick={handleClose}>
-                <FileCopyTwoToneIcon sx={{ mr: 1.75 }} /> Copy Data
-              </MenuItem>
-              <MenuItem onClick={handleClose}>
-                <PictureAsPdfTwoToneIcon sx={{ mr: 1.75 }} /> Export
-              </MenuItem>
-              <MenuItem onClick={handleClose}>
-                <ArchiveTwoToneIcon sx={{ mr: 1.75 }} /> Archive File
-              </MenuItem>
+              <MenuItem onClick={handleClose}> <GetAppTwoToneIcon sx={{ mr: 1.75 }} /> Import Card </MenuItem>
+              <MenuItem onClick={handleClose}> <FileCopyTwoToneIcon sx={{ mr: 1.75 }} /> Copy Data </MenuItem>
+              <MenuItem onClick={handleClose}> <PictureAsPdfTwoToneIcon sx={{ mr: 1.75 }} /> Export </MenuItem>
+              <MenuItem onClick={handleClose}> <ArchiveTwoToneIcon sx={{ mr: 1.75 }} /> Archive File </MenuItem>
             </Menu>
 
             <Stack direction="row" sx={{ alignItems: 'center' }}>
               <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>
-                {/* SINCRONIZACIÓN: Mostramos el total de dinero de tu inventario */}
-                ${total ? total.toLocaleString('es-CO') : '0.00'}
+                {/* Mostramos el valor total sincronizado */}
+                {formattedTotal}
               </Typography>
               <Avatar sx={{ ...theme.typography.smallAvatar, bgcolor: 'secondary.200', color: 'secondary.dark' }}>
                 <ArrowUpwardIcon fontSize="inherit" sx={{ transform: 'rotate3d(1, 1, 1, 45deg)' }} />
@@ -164,5 +152,5 @@ export default function EarningCard({ isLoading, total }) {
 
 EarningCard.propTypes = { 
   isLoading: PropTypes.bool,
-  total: PropTypes.number // Agregamos la validación del total
+  total: PropTypes.oneOfType([PropTypes.number, PropTypes.string]) // Aceptamos ambos por si el backend varía
 };

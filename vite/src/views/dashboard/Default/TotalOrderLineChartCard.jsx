@@ -1,14 +1,9 @@
 import PropTypes from 'prop-types';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
-import Avatar from '@mui/material/Avatar';
-import Button from '@mui/material/Button';
-import Grid from '@mui/material/Grid';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
+import { Avatar, Button, Grid, Stack, Typography, Box } from '@mui/material';
 
 // third party
 import Chart from 'react-apexcharts';
@@ -20,30 +15,18 @@ import SkeletonTotalOrderCard from 'ui-component/cards/Skeleton/EarningCard';
 
 // assets
 import LocalMallOutlinedIcon from '@mui/icons-material/LocalMallOutlined';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 
-// ==============================|| DASHBOARD DEFAULT - TOTAL ORDER CARD ||============================== //
-
-// Agregamos 'count' a las props para recibir productos.length
 export default function TotalOrderLineChartCard({ isLoading, count }) {
   const theme = useTheme();
+  const [timeValue, setTimeValue] = useState(false);
+  const [series, setSeries] = useState([{ data: [0, 0, 0, 0, 0, 0, 0] }]);
 
-  const [timeValue, setTimeValue] = React.useState(false);
-
-  // Datos de ejemplo para la gráfica (podrías dinamizarlos luego si guardas histórico)
-  const monthlyData = [{ data: [10, 20, 15, 30, 25, 40, count || 0] }];
-  const yearlyData = [{ data: [5, 15, 10, 25, 20, 35, count || 0] }];
-  
-  const [series, setSeries] = useState(yearlyData);
-
-  const handleChangeTime = (_event, newValue) => {
-    setTimeValue(newValue);
-    if (newValue) {
-      setSeries(monthlyData);
-    } else {
-      setSeries(yearlyData);
-    }
-  };
+  useEffect(() => {
+    // Generamos una línea que termina en la cantidad actual de productos
+    const baseData = timeValue ? [5, 12, 8, 20, 15, 25] : [2, 8, 5, 15, 10, 20];
+    setSeries([{ data: [...baseData, count || 0] }]);
+  }, [count, timeValue]);
 
   return (
     <>
@@ -58,104 +41,73 @@ export default function TotalOrderLineChartCard({ isLoading, count }) {
             color: '#fff',
             overflow: 'hidden',
             position: 'relative',
-            '&>div': {
-              position: 'relative',
-              zIndex: 5
-            },
             '&:after': {
               content: '""',
-              position: 'absolute',
-              width: 210,
-              height: 210,
+              position: 'absolute', width: 210, height: 210,
               background: theme.palette.primary[800],
-              borderRadius: '50%',
-              top: { xs: -85 },
-              right: { xs: -95 }
+              borderRadius: '50%', top: -85, right: -95
             },
             '&:before': {
               content: '""',
-              position: 'absolute',
-              width: 210,
-              height: 210,
+              position: 'absolute', width: 210, height: 210,
               background: theme.palette.primary[800],
-              borderRadius: '50%',
-              top: { xs: -125 },
-              right: { xs: -15 },
-              opacity: 0.5
+              borderRadius: '50%', top: -125, right: -15, opacity: 0.5
             }
           }}
         >
           <Box sx={{ p: 2.25 }}>
-            <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+            <Stack direction="row" justifyContent="space-between">
               <Avatar
                 variant="rounded"
                 sx={{
                   ...theme.typography.largeAvatar,
-                  borderRadius: 2,
                   bgcolor: 'primary.800',
-                  color: 'common.white',
+                  color: '#fff',
                   mt: 1
                 }}
               >
                 <LocalMallOutlinedIcon fontSize="inherit" />
               </Avatar>
-              <Box>
+              <Stack direction="row" spacing={1}>
                 <Button
-                  disableElevation
-                  variant={timeValue ? 'contained' : 'text'}
                   size="small"
-                  sx={{ color: 'inherit' }}
-                  onClick={(e) => handleChangeTime(e, true)}
+                  sx={{ color: timeValue ? '#fff' : 'primary.200' }}
+                  onClick={() => setTimeValue(true)}
                 >
                   Mes
                 </Button>
                 <Button
-                  disableElevation
-                  variant={!timeValue ? 'contained' : 'text'}
                   size="small"
-                  sx={{ color: 'inherit' }}
-                  onClick={(e) => handleChangeTime(e, false)}
+                  sx={{ color: !timeValue ? '#fff' : 'primary.200' }}
+                  onClick={() => setTimeValue(false)}
                 >
                   Año
                 </Button>
-              </Box>
+              </Stack>
             </Stack>
 
-            <Grid sx={{ mb: 0.75 }}>
-              <Grid container sx={{ alignItems: 'center' }}>
-                <Grid size={6}>
-                  <Box>
-                    <Stack direction="row" sx={{ alignItems: 'center' }}>
-                      <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>
-                        {/* SINCRONIZACIÓN: Mostramos la cantidad real de productos */}
-                        {isLoading ? '...' : (count || 0)}
-                      </Typography>
-                      <Avatar sx={{ ...theme.typography.smallAvatar, bgcolor: 'primary.200', color: 'primary.dark' }}>
-                        <ArrowDownwardIcon fontSize="inherit" sx={{ transform: 'rotate3d(1, 1, 1, 45deg)' }} />
-                      </Avatar>
-                    </Stack>
-                    <Typography
-                      sx={{
-                        fontSize: '1rem',
-                        fontWeight: 500,
-                        color: 'primary.200'
-                      }}
-                    >
-                      Productos en Sistema
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid
-                  size={6}
-                  sx={{
-                    '.apexcharts-tooltip.apexcharts-theme-light': {
-                      color: theme.vars.palette.text.primary,
-                      background: theme.vars.palette.background.default
-                    }
-                  }}
-                >
-                  <Chart options={chartOptions} series={series} type="line" height={90} />
-                </Grid>
+            <Grid container alignItems="center">
+              <Grid item xs={6}>
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 2, mb: 1 }}>
+                  <Typography sx={{ fontSize: '2.125rem', fontWeight: 500 }}>
+                    {count || 0}
+                  </Typography>
+                  <Avatar 
+                    sx={{ 
+                      ...theme.typography.smallAvatar, 
+                      bgcolor: 'primary.200', 
+                      color: 'primary.dark' 
+                    }}
+                  >
+                    <ArrowUpwardIcon fontSize="inherit" />
+                  </Avatar>
+                </Stack>
+                <Typography sx={{ fontSize: '1rem', fontWeight: 500, color: 'primary.200' }}>
+                  Productos Totales
+                </Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Chart options={chartOptions} series={series} type="line" height={90} />
               </Grid>
             </Grid>
           </Box>
@@ -165,7 +117,7 @@ export default function TotalOrderLineChartCard({ isLoading, count }) {
   );
 }
 
-TotalOrderLineChartCard.propTypes = { 
-    isLoading: PropTypes.bool,
-    count: PropTypes.number // Validamos la nueva prop
+TotalOrderLineChartCard.propTypes = {
+  isLoading: PropTypes.bool,
+  count: PropTypes.number
 };
